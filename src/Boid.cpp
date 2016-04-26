@@ -4,8 +4,8 @@
 
 namespace boids
 {
-Boid::Boid(const sf::Vector2f& position, const sf::Color& color)
-	: position(position), color(color)
+Boid::Boid(const sf::Vector2f& position, const sf::Color& color, float size)
+	: position(position), color(color), size(size)
 {
 
 }
@@ -34,7 +34,7 @@ void Boid::setColor(const sf::Color& color)
 
 void Boid::draw(sf::RenderTarget& target)
 {
-	sf::CircleShape shape(BOID_SIZE);
+	sf::CircleShape shape(size);
 	shape.setFillColor(color);
 	shape.setPosition(position);
 	target.draw(shape);

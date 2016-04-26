@@ -6,6 +6,8 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <vector>
 
+#define MARGIN 10
+
 namespace boids
 {
 class App

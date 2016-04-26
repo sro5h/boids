@@ -5,8 +5,6 @@
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Graphics/Color.hpp>
 
-#define BOID_SIZE	10
-
 namespace boids
 {
 class Boid
@@ -14,9 +12,10 @@ class Boid
 private:
 	sf::Vector2f position;
 	sf::Color color;
+	float size;
 
 public:
-	Boid(const sf::Vector2f& position, const sf::Color& color);
+	Boid(const sf::Vector2f& position, const sf::Color& color, float size = 10);
 	~Boid();
 
 	void setPosition(const sf::Vector2f& position);
