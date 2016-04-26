@@ -1,6 +1,11 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+namespace sf
+{
+class RenderTarget;
+}
+
 namespace boids
 {
 typedef signed   char int8;
