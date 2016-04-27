@@ -4,7 +4,7 @@
 namespace boids
 {
 Boid::Boid(const sf::Vector2f& position, float size)
-	: position(position), size(size), velocity(0.0f, 0.0f)
+	: position(position), size(size)
 {
 	color = sf::Color(52, 152, 219);
 }

@@ -8,15 +8,15 @@
 namespace boids
 {
 App::App(uint16 width, uint16 height)
-	: width(width), height(height), worldwidth(width*0.5f), worldheight(height*0.5f)
+	: width(800), height(800), worldwidth(width*0.5f), worldheight(height*0.5f)
 {
-	window.create(sf::VideoMode(width, height), "Boids v0.1", sf::Style::Titlebar | sf::Style::Close, sf::ContextSettings());
+	window.create(sf::VideoMode(this->width, this->height), "Boids v0.1", sf::Style::Titlebar | sf::Style::Close, sf::ContextSettings());
 	sf::View view;
-	view.reset(sf::FloatRect(-worldwidth, -worldheight, width, height));
+	view.reset(sf::FloatRect(-worldwidth, -worldheight, worldwidth*2, worldheight*2));
 	/*view.setViewport(sf::FloatRect(1.0f, 1.0f, 1.0f, 1.0f));*/
 	window.setView(view);
 
-	addBoid(sf::Vector2f(0, 0));
+	addBoid(sf::Vector2f(50, 50));
 }
 
 App::~App()
@@ -53,20 +53,46 @@ void App::addBoid(const sf::Vector2f& position)
 
 sf::Vector2f App::rule1(Boid* b)
 {
-	sf::Vector2f center(0.0f, 0.0f);
+	if(boidslist.size() > 1)
+	{
+		sf::Vector2f center;
+
+		for(auto& boid : boidslist)
+		{
+			if(boid != b)
+			{
+				center = center + boid->position;
+			}
+		}
+		center = center * (1.f/(boidslist.size()-1.f));
+		return (center - b->position) * (1.f/100.f);
+	}
+	return sf::Vector2f();
+}
+
+sf::Vector2f App::rule2(Boid* b)
+{
+	sf::Vector2f c;
 
 	for(auto& boid : boidslist)
 	{
 		if(boid != b)
 		{
-			center = center + boid->position;
+			sf::Vector2f delta = boid->position - b->position;
+			if(std::sqrt(delta.x * delta.x + delta.y * delta.y) < 100)
+			{
+				c = c - (boid->position - b->position);
+			}
 		}
 	}
-	if(boidslist.size() > 1)
-		center = center * (1.f/(boidslist.size()-1.f));
-	return (center - b->position) * (1.f/100.f);
+
+	return c;
 }
 
+sf::Vector2f App::rule3(Boid* b)
+{
+	return sf::Vector2f();
+}
 
 void App::handleEvent(sf::Event& ev)
 {
@@ -76,7 +102,7 @@ void App::handleEvent(sf::Event& ev)
 	}
 	else if(ev.type == sf::Event::MouseButtonPressed && ev.mouseButton.button == sf::Mouse::Left)
 	{
-		addBoid(sf::Vector2f(static_cast<float>(sf::Mouse::getPosition(window).x - worldwidth), static_cast<float>(sf::Mouse::getPosition(window).y - worldheight)));
+		addBoid(window.mapPixelToCoords(sf::Vector2i(sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y)));
 	}
 }
 
@@ -87,16 +113,13 @@ void App::update(float dt)
 	for(auto& boid : boidslist)
 	{
 		v1 = rule1(boid);
-		/*
 		v2 = rule2(boid);
-		v3 = rule3(boid);
-		*/
 
-		boid->velocity = boid->velocity + v1 /*+ v2 + v3*/;
-		boid->position = boid->position + (boid->velocity * dt);
+		boid->velocity = boid->velocity + v1 + v2 + v3;
+		boid->position = boid->position + (boid->velocity * dt * 0.1f);
 	}
 
-	std::cout << "FPS: " << 1/dt << std::endl;
+	//std::cout << "FPS: " << 1/dt << std::endl;
 }
 
 void App::draw()

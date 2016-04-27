@@ -22,6 +22,8 @@ private:
 	void addBoid(const sf::Vector2f& position);
 
 	sf::Vector2f rule1(Boid* b);
+	sf::Vector2f rule2(Boid* b);
+	sf::Vector2f rule3(Boid* b);
 
 	void handleEvent(sf::Event& ev);
 	void update(float dt);
