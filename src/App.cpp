@@ -1,19 +1,32 @@
 #include "App.h"
 #include <SFML/Window/Event.hpp>
+#include <SFML/Graphics/CircleShape.hpp>
+#include <SFML/Graphics/RectangleShape.hpp>
 #include <iostream>
 #include <random>
 
 namespace boids
 {
 App::App(uint16 width, uint16 height)
-	: width(width), height(height)
+	: width(width), height(height), worldwidth(width*0.5f), worldheight(height*0.5f)
 {
-	window.create(sf::VideoMode(width + 2*MARGIN, height + 2*MARGIN), "Boids v0.1");
+	window.create(sf::VideoMode(width, height), "Boids v0.1", sf::Style::Titlebar | sf::Style::Close, sf::ContextSettings());
+	sf::View view;
+	view.reset(sf::FloatRect(-worldwidth, -worldheight, width, height));
+	/*view.setViewport(sf::FloatRect(1.0f, 1.0f, 1.0f, 1.0f));*/
+	window.setView(view);
+
+	addBoid(sf::Vector2f(0, 0));
 }
 
 App::~App()
 {
-
+	while(boidslist.size() > 0)
+	{
+		if(boidslist.back() != nullptr)
+			delete boidslist.back();
+		boidslist.pop_back();
+	}
 }
 
 
@@ -21,25 +34,37 @@ void App::addBoid()
 {
 	std::random_device rd;
 	std::mt19937 mt(rd());
-	//std::uniform_real_distribution<float> sizedist(7, 15);
-	//float size = sizedist(mt);
-	float size = 10;
-	std::uniform_real_distribution<float> xdist(MARGIN, width - size);
-	std::uniform_real_distribution<float> ydist(MARGIN, height - size);
-	std::uniform_int_distribution<int> colordist(0, 255);
+	float size = 20;
+	std::uniform_real_distribution<float> xdist(-worldwidth + size, worldwidth - size);
+	std::uniform_real_distribution<float> ydist(-worldheight + size, worldheight - size);
 
-	boids.push_back(Boid(sf::Vector2f(xdist(mt), ydist(mt)), sf::Color(colordist(mt), colordist(mt), colordist(mt))/*, size*/));
+	boidslist.push_back(new Boid(sf::Vector2f(xdist(mt), ydist(mt))));
 }
 
 void App::addBoid(const sf::Vector2f& position)
 {
 	std::random_device rd;
 	std::mt19937 mt(rd());
-	//std::uniform_real_distribution<float> sizedist(7, 15);
-	//float size = sizedist(mt);
-	std::uniform_int_distribution<int> colordist(0, 255);
 
-	boids.push_back(Boid(position, sf::Color(colordist(mt), colordist(mt), colordist(mt))/*, size*/));
+
+	boidslist.push_back(new Boid(position));
+}
+
+
+sf::Vector2f App::rule1(Boid* b)
+{
+	sf::Vector2f center(0.0f, 0.0f);
+
+	for(auto& boid : boidslist)
+	{
+		if(boid != b)
+		{
+			center = center + boid->position;
+		}
+	}
+	if(boidslist.size() > 1)
+		center = center * (1.f/(boidslist.size()-1.f));
+	return (center - b->position) * (1.f/100.f);
 }
 
 
@@ -51,33 +76,45 @@ void App::handleEvent(sf::Event& ev)
 	}
 	else if(ev.type == sf::Event::MouseButtonPressed && ev.mouseButton.button == sf::Mouse::Left)
 	{
-		addBoid(sf::Vector2f(static_cast<float>(sf::Mouse::getPosition(window).x), static_cast<float>(sf::Mouse::getPosition(window).y)));
+		addBoid(sf::Vector2f(static_cast<float>(sf::Mouse::getPosition(window).x - worldwidth), static_cast<float>(sf::Mouse::getPosition(window).y - worldheight)));
 	}
 }
 
 void App::update(float dt)
 {
+	sf::Vector2f v1, v2, v3;
+
+	for(auto& boid : boidslist)
+	{
+		v1 = rule1(boid);
+		/*
+		v2 = rule2(boid);
+		v3 = rule3(boid);
+		*/
+
+		boid->velocity = boid->velocity + v1 /*+ v2 + v3*/;
+		boid->position = boid->position + (boid->velocity * dt);
+	}
+
 	std::cout << "FPS: " << 1/dt << std::endl;
 }
 
 void App::draw()
 {
-	// Draw bounds
+	for(auto& boid : boidslist)
 	{
-		sf::Vertex bounds[] =
-		{
-			sf::Vertex(sf::Vector2f(MARGIN, MARGIN), sf::Color::White),
-			sf::Vertex(sf::Vector2f(static_cast<float>(width) + MARGIN, MARGIN), sf::Color::White),
-			sf::Vertex(sf::Vector2f(static_cast<float>(width) + MARGIN, static_cast<float>(height) + MARGIN), sf::Color::White),
-			sf::Vertex(sf::Vector2f(MARGIN, static_cast<float>(height) + MARGIN), sf::Color::White),
-			sf::Vertex(sf::Vector2f(MARGIN, MARGIN), sf::Color::White)
-		};
-		window.draw(bounds, 5, sf::LinesStrip);
-	}
+		float size = boid->size;
+		sf::Vector2f velocity = boid->velocity;
+		sf::Vector2f position = boid->position;
 
-	for(auto& boid : boids)
-	{
-		boid.draw(window);
+		sf::CircleShape shape(size*0.5f, 3);
+		shape.setOrigin(size*0.5f, size*0.5f);
+		float rad = std::atan2f(velocity.y, velocity.x) + static_cast<float>(PI/2);
+		shape.setRotation(static_cast<float>(rad_to_deg(rad)));
+		shape.setFillColor(boid->color);
+		shape.setPosition(position);
+
+		window.draw(shape);
 	}
 }
 

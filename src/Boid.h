@@ -9,20 +9,14 @@ namespace boids
 {
 class Boid
 {
-private:
+public:
 	sf::Vector2f position;
+	sf::Vector2f velocity;
 	sf::Color color;
 	float size;
 
-public:
-	Boid(const sf::Vector2f& position, const sf::Color& color, float size = 10);
+	Boid(const sf::Vector2f& position, float size = 20);
 	~Boid();
-
-	void setPosition(const sf::Vector2f& position);
-	sf::Vector2f getPosition();
-	void setColor(const sf::Color& color);
-
-	void draw(sf::RenderTarget& target);
 };
 }
 

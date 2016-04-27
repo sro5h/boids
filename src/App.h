@@ -6,8 +6,6 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <vector>
 
-#define MARGIN 10
-
 namespace boids
 {
 class App
@@ -15,11 +13,15 @@ class App
 private:
 	uint16 width;
 	uint16 height;
+	float worldwidth;
+	float worldheight;
 	sf::RenderWindow window;
-	std::vector<Boid> boids;
+	std::vector<Boid*> boidslist;
 
 	void addBoid();
 	void addBoid(const sf::Vector2f& position);
+
+	sf::Vector2f rule1(Boid* b);
 
 	void handleEvent(sf::Event& ev);
 	void update(float dt);

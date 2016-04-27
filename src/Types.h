@@ -1,6 +1,10 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+#define PI 3.14159265359
+#define deg_to_rad(x) (x / (180/PI))
+#define rad_to_deg(x) (x * (180/PI))
+
 namespace sf
 {
 class RenderTarget;

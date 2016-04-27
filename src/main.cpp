@@ -2,6 +2,6 @@
 
 int main()
 {
-	boids::App app(600, 600);
+	boids::App app(700, 700);
 	return app.run();
 }
