@@ -16,7 +16,8 @@ App::App(uint16 width, uint16 height)
 	/*view.setViewport(sf::FloatRect(1.0f, 1.0f, 1.0f, 1.0f));*/
 	window.setView(view);
 
-	addBoid(sf::Vector2f(50, 50));
+	addBoid(sf::Vector2f(200, 200), sf::Vector2f(-300, -300));
+	addBoid(sf::Vector2f(-200, -200), sf::Vector2f(300, 300));
 }
 
 App::~App()
@@ -43,11 +44,13 @@ void App::addBoid()
 
 void App::addBoid(const sf::Vector2f& position)
 {
-	std::random_device rd;
-	std::mt19937 mt(rd());
-
-
 	boidslist.push_back(new Boid(position));
+}
+
+void App::addBoid(const sf::Vector2f& position, const sf::Vector2f& velocity)
+{
+	boidslist.push_back(new Boid(position));
+	boidslist.back()->velocity = velocity;
 }
 
 
@@ -74,7 +77,7 @@ sf::Vector2f App::rule2(Boid* b)
 {
 	sf::Vector2f c;
 
-	for(auto& boid : boidslist)
+	/*for(auto& boid : boidslist)
 	{
 		if(boid != b)
 		{
@@ -84,6 +87,17 @@ sf::Vector2f App::rule2(Boid* b)
 				c = c - (boid->position - b->position);
 			}
 		}
+	}*/
+
+	for(auto& boid : boidslist)
+	{
+		if(boid != b)
+		{
+			sf::Vector2f delta = boid->position - b->position;
+			float len = std::sqrt(delta.x*delta.x + delta.y*delta.y);
+			if(len < 50)
+				c = c - (delta * 1.f/(len));
+		}
 	}
 
 	return c;
@@ -91,7 +105,21 @@ sf::Vector2f App::rule2(Boid* b)
 
 sf::Vector2f App::rule3(Boid* b)
 {
-	return sf::Vector2f();
+	sf::Vector2f pv;
+
+	if(boidslist.size() > 1)
+	{
+		for(auto& boid : boidslist)
+		{
+			if(boid != b)
+			{
+				pv = pv + boid->velocity;
+			}
+		}
+		pv = pv / (boidslist.size() -1.f);
+		pv = (pv - b->velocity) / 10.f;
+	}
+	return pv;
 }
 
 void App::handleEvent(sf::Event& ev)
@@ -114,9 +142,10 @@ void App::update(float dt)
 	{
 		v1 = rule1(boid);
 		v2 = rule2(boid);
+		v3 = rule3(boid);
 
 		boid->velocity = boid->velocity + v1 + v2 + v3;
-		boid->position = boid->position + (boid->velocity * dt * 0.1f);
+		boid->position = boid->position + (boid->velocity * dt);
 	}
 
 	//std::cout << "FPS: " << 1/dt << std::endl;

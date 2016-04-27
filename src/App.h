@@ -20,6 +20,7 @@ private:
 
 	void addBoid();
 	void addBoid(const sf::Vector2f& position);
+	void addBoid(const sf::Vector2f& position, const sf::Vector2f& velocity);
 
 	sf::Vector2f rule1(Boid* b);
 	sf::Vector2f rule2(Boid* b);
